@@ -28,6 +28,8 @@ The anonymous section at the top is for global options.
 ```config
 [global]
 expect_license = Apache 2.0
+entity = Company
+year = 2016
 
 [pattern:*.py]
 expect_license_header = Apache 2.0

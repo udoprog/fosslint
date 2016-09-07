@@ -28,6 +28,10 @@ LICENSES['Apache 2.0'] = License('apache_2.0.txt', 'apache_2.0_header.txt')
 def read_license(path):
     content = pkg_resources.resource_string(__name__, path).decode('utf-8')
     content = content.split(u'\n')
+
+    if len(content) > 0:
+        content = content[:-1]
+
     return content
 
 

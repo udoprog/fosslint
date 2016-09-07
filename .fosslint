@@ -1,5 +1,7 @@
 [global]
 expect_license = Apache 2.0
+entity = John-John Tedro
+year = 2016
 
-[pattern:*.py]
+[pattern:/fosslint/*.py]
 expect_license_header = Apache 2.0
