@@ -1,0 +1,13 @@
+#!/usr/bin/env python3
+
+import sys
+import os
+
+if __name__ == "__main__":
+    root = os.path.dirname(os.path.dirname(__file__))
+
+    if os.path.isfile(os.path.join(root, "fosslint", "__init__.py")):
+        sys.path.insert(0, root)
+
+    from fosslint import entry
+    entry()

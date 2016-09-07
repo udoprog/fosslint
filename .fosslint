@@ -1,0 +1,5 @@
+[global]
+expect_license = Apache 2.0
+
+[pattern:*.py]
+expect_license_header = Apache 2.0
