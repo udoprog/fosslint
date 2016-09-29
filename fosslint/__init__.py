@@ -3,6 +3,8 @@ import argparse
 import configparser
 import itertools
 import datetime
+import difflib
+import sys
 
 from .pathglob import pathglob_compile
 from .policies import load_policy
@@ -21,6 +23,7 @@ class Violation:
         self.kind = kw.pop('kind', 'UNKNOWN')
         self.fix = kw.pop('fix', lambda: ())
         self.describe_fix = kw.pop('describe_fix', lambda: "No Description")
+        self.diff = kw.pop('diff', None)
 
 
 class GlobalOptions:
@@ -61,9 +64,8 @@ class GlobalOptions:
         if self.year is None:
             if self.auto_year:
                 self.year = str(datetime.datetime.now().year)
-                return
-
-            raise Exception('Missing global option \'year\'')
+            else:
+                raise Exception('Missing global option \'year\'')
 
         if self.base_year is not None:
             self.year = "{}-{}".format(self.base_year, self.year)
@@ -95,9 +97,9 @@ class FileMatchOptions:
         if self.expect_license_header is not None:
             errors.append(self.check_expect_line_header(path, ext))
 
-        return itertools.chain(*errors)
+        return list(itertools.chain(*errors))
 
-    def fix_expect_line_header(self, path, ext, end_index):
+    def render_fixed(self, path, ext, end_index):
         lines = []
 
         with open(path) as f:
@@ -108,25 +110,42 @@ class FileMatchOptions:
             self.expect_license_header.render_header(**self.kw)
         )
 
-        with open(path, 'w') as f:
-            for header_line in rendered:
-                f.write(header_line + u'\n')
+        for header_line in rendered:
+            yield header_line + u'\n'
 
-            for line in lines[end_index:]:
+        for line in lines[end_index:]:
+            yield line
+
+    def fix_expect_line_header(self, path, ext, end_index):
+        fixed = list(self.render_fixed(path, ext, end_index))
+
+        with open(path, 'w') as f:
+            for line in fixed:
                 f.write(line)
 
+    def build_diff(self, original_file, path, ext, end_index):
+        def f():
+            fixed = list(self.render_fixed(path, ext, end_index))
+
+            return difflib.unified_diff(
+                original_file, fixed,
+                fromfile=path, tofile=path + '.fix'
+            )
+
+        return f
 
     def check_expect_line_header(self, path, ext):
-        lines = ext.render_header_comment(
+        expected_lines = ext.render_header_comment(
             self.expect_license_header.render_header(**self.kw)
         )
 
-        file_lines = list(l[:-1] for l in open(path))
+        original_file = list(open(path))
+        file_lines = [l.rstrip() for l in original_file]
 
         # the last line of the header block
         end_index = ext.find_header_end(file_lines)
 
-        for i, (line, expect) in enumerate(zip(file_lines, lines)):
+        for i, (line, expect) in enumerate(zip(file_lines, expected_lines)):
             if line != expect:
                 yield Violation(
                     path=path,
@@ -136,7 +155,8 @@ class FileMatchOptions:
                     fix=lambda: self.fix_expect_line_header(
                         path, ext, end_index
                     ),
-                    describe_fix=lambda: "Prepend Header"
+                    describe_fix=lambda: "Prepend Header",
+                    diff=self.build_diff(original_file, path, ext, end_index)
                 )
 
                 break
@@ -252,19 +272,27 @@ def entry():
 
     global_opt.verify()
 
-    issues = []
+    checks = []
 
     for (path, relative) in iterate_files(ns.root):
         for (pat, opt) in matchers:
             if pat.fullmatch(relative) is not None:
-                issues.append((opt, opt.evaluate(path)))
+                checks.append((opt, opt.evaluate(path)))
                 break
 
-    for (opt, errors) in issues:
+    if all(len(e) == 0 for p, e in checks):
+        print("Performed {} check(s), no issues found :)".format(len(checks)))
+        return
+
+    for (opt, errors) in checks:
         for e in errors:
             print("{}:{} - {} ({})".format(e.path, e.line, e.kind, e.message))
 
             if ns.fix:
+                if e.diff:
+                    for line in e.diff():
+                        sys.stdout.write(line)
+
                 if wait_for_yes(e.describe_fix()):
                     print("Fixing: {}".format(e.path))
                     e.fix()
