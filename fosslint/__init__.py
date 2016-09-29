@@ -1,10 +1,11 @@
 import os
 import argparse
 import configparser
-import fnmatch
-import re
 import itertools
+import datetime
 
+from .pathglob import pathglob_compile
+from .policies import load_policy
 from .licenses import load_license
 from .extensions import load_extension
 
@@ -25,7 +26,10 @@ class Violation:
 class GlobalOptions:
     def __init__(self):
         self.expect_license = None
-        self.keywords = {}
+        self.year = None
+        self.entity = None
+        self.base_year = None
+        self.auto_year = False
 
     def parse(self, key, value):
         if key == 'expect_license':
@@ -33,21 +37,36 @@ class GlobalOptions:
             return
 
         if key == 'entity':
-            self.keywords['entity'] = value
+            self.entity = value
             return
 
         if key == 'year':
-            self.keywords['year'] = value
+            self.year = value
+            return
+
+        if key == 'auto_year':
+            self.auto_year = value
+            return
+
+        if key == 'base_year':
+            self.base_year = value
             return
 
         raise Exception('Unsupported option (' + key + ')')
 
     def verify(self):
-        if 'entity' not in self.keywords:
+        if self.entity is None:
             raise Exception('Missing option \'entity\'')
 
-        if 'year' not in self.keywords:
+        if self.year is None:
+            if self.auto_year:
+                self.year = str(datetime.datetime.now().year)
+                return
+
             raise Exception('Missing global option \'year\'')
+
+        if self.base_year is not None:
+            self.year = "{}-{}".format(self.base_year, self.year)
 
 
 class FileMatchOptions:
@@ -57,7 +76,7 @@ class FileMatchOptions:
 
     @property
     def kw(self):
-        return self.global_opt.keywords
+        return {"entity": self.global_opt.entity, "year": self.global_opt.year}
 
     def parse(self, key, value):
         if key == "expect_license_header":
@@ -189,10 +208,28 @@ def entry():
 
         config.read(c)
 
+    policies = []
+
+    # find policies
+    for section in config.sections():
+        if section.startswith('policy:'):
+            _, name = section.split(':', 1)
+            options = config.options(section)
+            policies.append(load_policy(name, options))
+            continue
+
+    # apply policies
+    for policy in policies:
+        print("Applying Policy: {}".format(policy.name))
+        policy.apply(config)
+
     matchers = []
     global_opt = GlobalOptions()
 
     for section in config.sections():
+        if section.startswith('policy:'):
+            continue
+
         if section == 'global':
             for (key, value) in config.items(section):
                 global_opt.parse(key, value)
@@ -202,7 +239,7 @@ def entry():
         if section.startswith('pattern:'):
             _, rest = section.split(':', 1)
 
-            pat = re.compile(fnmatch.translate(rest))
+            pat = pathglob_compile(rest)
             opt = FileMatchOptions(global_opt)
 
             for (key, value) in config.items(section):
