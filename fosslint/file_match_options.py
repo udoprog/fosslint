@@ -13,13 +13,13 @@ class FileMatchOptions:
         self.global_section = global_section
         self.relative = relative
         self.path = path
-        self.expect_license_header = None
-        self.custom_license_header_path = None
+        self.license_header = global_section.license_header
+        self.license_header_path = global_section.license_header_path
         self.start_comment = None
         self.end_comment = None
         self.skip_header_lines = None
         self.skip_header_on_stanza = None
-        self.strip_license = False
+        self.strip_license = global_section.strip_license
         self.language = None
 
     @property
@@ -30,11 +30,11 @@ class FileMatchOptions:
         }
 
     def load_section(self, section):
-        if section.expect_license_header is not None:
-            self.expect_license_header = section.expect_license_header
+        if section.license_header is not None:
+            self.license_header = section.license_header
 
-        if section.custom_license_header_path is not None:
-            self.custom_license_header_path = section.custom_license_header_path
+        if section.license_header_path is not None:
+            self.license_header_path = section.license_header_path
 
         if section.start_comment is not None:
             self.start_comment = section.start_comment
@@ -61,11 +61,11 @@ class FileMatchOptions:
 
         license_header = None
 
-        if self.expect_license_header is not None:
-            license_header = self.expect_license_header
+        if self.license_header is not None:
+            license_header = self.license_header
 
-        if self.custom_license_header_path is not None:
-            license_header = self.custom_license_header_path
+        if self.license_header_path is not None:
+            license_header = self.license_header_path
 
         if license_header is not None:
             errors.append(self.check_expect_line_header(

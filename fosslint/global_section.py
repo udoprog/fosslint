@@ -3,13 +3,17 @@ import datetime
 from .licenses import load_license
 
 class GlobalSection:
-    def __init__(self):
+    def __init__(self, context):
         self._expect_license = None
+        self._context = context
         self.year = None
         self.entity = None
-        self.base_year = None
+        self.start_year = None
         self.auto_year = False
         self.year_range_format = "{start} - {end}"
+        self.strip_license = False
+        self.license_header = None
+        self.license_header_path = None
 
     def set_expect_license(self, name):
         self._expect_license = load_license(name)
@@ -40,15 +44,32 @@ class GlobalSection:
         if auto_year is not None:
             self.auto_year = auto_year
 
-        base_year = section.get('base_year')
+        start_year = section.get('start_year')
 
-        if base_year:
-            self.base_year = base_year
+        if start_year:
+            self.start_year = start_year
 
         year_range_format = section.get('year_range_format')
 
         if year_range_format:
             self.year_range_format = year_range_format
+
+        strip_license = section.getboolean('strip_license')
+
+        if strip_license is not None:
+            self.strip_license = strip_license
+
+        license_header = section.get('license_header')
+
+        if license_header:
+            self.license_header = self._context.load_license_header(
+                license_header)
+
+        license_header_path = section.get('license_header_path')
+
+        if license_header_path:
+            self.license_header_path = self._context.load_license_header_path(
+                self._context.absolute_path(license_header_path))
 
     def verify(self):
         if self.entity is None:
@@ -60,7 +81,7 @@ class GlobalSection:
             else:
                 raise Exception('Missing global option \'year\'')
 
-        if self.base_year is not None:
+        if self.start_year is not None:
             self.year = self.year_range_format.format(
-                start=self.base_year, end=self.year
+                start=self.start_year, end=self.year
             )

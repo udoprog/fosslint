@@ -16,7 +16,7 @@ class Spotify10(Policy):
 
         patterns.append(PatternSection.build(
             context, '/**/*.py',
-            expect_license_header = 'Apache 2.0'
+            license_header = 'Apache 2.0'
         ))
 
         patterns.append(PatternSection.build(
@@ -27,5 +27,5 @@ class Spotify10(Policy):
 
         patterns.append(PatternSection.build(
             context, '/**/src/main/**/*.java',
-            expect_license_header = 'Apache 2.0'
+            license_header = 'Apache 2.0'
         ))

@@ -32,7 +32,7 @@ entity = Company
 year = 2016
 
 [pattern:/**/*.py]
-expect_license_header = Apache 2.0
+license_header = Apache 2.0
 ```
 
 ## Policy Configurations (`policy:<name>`)
@@ -95,11 +95,11 @@ Available languages are:
 * `python` - Python
 * `java` - Java
 
-### `expect_license_header = <license>`
+### `license_header = <license>`
 
 Expect the license header for the given license to be applied to a file.
 
-### `custom_license_header_path = <path>`
+### `license_header_path = <path>`
 
 Expect the license header in `<path>` for all matching source files to be
 applied.
@@ -141,10 +141,10 @@ Copyright year to apply.
 
 Automatically determine current year from the local system clock.
 
-### `base_year = <year>`
+### `start_year = <year>`
 
 If copyright year is a range, this is the first component of that range as in
-`<base_year>-<year>`.
+`<start_year>-<year>`.
 
 ### `expect_license = <license>`
 

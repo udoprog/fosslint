@@ -29,8 +29,8 @@ def parse_lines(input):
 class PatternSection:
     def __init__(self, pattern, **kw):
         self.pattern = pattern
-        self.expect_license_header = kw.get('expect_license_header', None)
-        self.custom_license_header_path = kw.get('custom_license_header_path', None)
+        self.license_header = kw.get('license_header', None)
+        self.license_header_path = kw.get('license_header_path', None)
         self.start_comment = kw.get('start_comment', None)
         self.end_comment = kw.get('end_comment', None)
         self.skip_header_lines = kw.get('skip_header_lines', None)
@@ -42,17 +42,16 @@ class PatternSection:
     def build(cls, context, pattern, **kw):
         pattern = pathglob_compile(pattern)
 
-        expect_license_header = kw.get('expect_license_header', None)
+        license_header = kw.get('license_header', None)
 
-        if expect_license_header:
-            kw['expect_license_header'] = context.load_license_header(
-                expect_license_header)
+        if license_header:
+            kw['license_header'] = context.load_license_header(license_header)
 
-        custom_license_header_path = kw.get('custom_license_header_path', None)
+        license_header_path = kw.get('license_header_path', None)
 
-        if custom_license_header_path:
-            kw['custom_license_header_path'] = context.load_license_header_path(
-                context.absolute_path(custom_license_header_path))
+        if license_header_path:
+            kw['license_header_path'] = context.load_license_header_path(
+                context.absolute_path(license_header_path))
 
         skip_header_lines = kw.get('skip_header_lines', None)
 
@@ -68,8 +67,8 @@ class PatternSection:
 
         _, pattern = name.split(':', 1)
 
-        expect_license_header = section.get('expect_license_header')
-        custom_license_header_path = section.get('custom_license_header_path')
+        license_header = section.get('license_header')
+        license_header_path = section.get('license_header_path')
         start_comment = section.get('start_comment')
         end_comment = section.get('end_comment')
         skip_header_lines = section.get('skip_header_lines')
@@ -78,8 +77,8 @@ class PatternSection:
         language = section.get('language')
 
         return cls.build(context, pattern,
-            expect_license_header = expect_license_header,
-            custom_license_header_path = custom_license_header_path,
+            license_header = license_header,
+            license_header_path = license_header_path,
             start_comment = start_comment,
             end_comment = end_comment,
             skip_header_lines = skip_header_lines,

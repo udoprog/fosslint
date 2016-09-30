@@ -43,10 +43,10 @@ def check_action(ns):
     ignored = []
     # patterns to evalute
     patterns = []
-    # global configuration
-    global_section = GlobalSection()
     # context for local configurations
     context = Context(ns.root)
+    # global configuration
+    global_section = GlobalSection(context)
 
     for section in config.sections():
         if section.startswith('policy:'):
