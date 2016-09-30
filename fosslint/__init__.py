@@ -5,6 +5,7 @@ import itertools
 import datetime
 import difflib
 import sys
+import contextlib
 
 from .pathglob import pathglob_compile
 from .policies import load_policy
@@ -34,28 +35,31 @@ class GlobalOptions:
         self.base_year = None
         self.auto_year = False
 
-    def parse(self, key, value):
-        if key == 'expect_license':
-            self.expect_license = load_license(value)
-            return
+    def parse_section(self, section):
+        expect_license = section.get('expect_license')
 
-        if key == 'entity':
-            self.entity = value
-            return
+        if expect_license:
+            self.expect_license = load_license(expect_license)
 
-        if key == 'year':
-            self.year = value
-            return
+        entity = section.get('entity')
 
-        if key == 'auto_year':
-            self.auto_year = value
-            return
+        if entity:
+            self.entity = entity
 
-        if key == 'base_year':
-            self.base_year = value
-            return
+        year = section.get('year')
 
-        raise Exception('Unsupported option (' + key + ')')
+        if year:
+            self.year = year
+
+        auto_year = section.getboolean('auto_year')
+
+        if auto_year is not None:
+            self.auto_year = auto_year
+
+        base_year = section.get('base_year')
+
+        if base_year:
+            self.base_year = base_year
 
     def verify(self):
         if self.entity is None:
@@ -71,28 +75,35 @@ class GlobalOptions:
             self.year = "{}-{}".format(self.base_year, self.year)
 
 
+
 class FileMatchOptions:
     def __init__(self, global_opt, relative, path):
         self.global_opt = global_opt
         self.expect_license_header = None
         self.relative = relative
         self.path = path
-        self.java_single_star = None
+        self.start_comment = None
+        self.end_comment = None
 
     @property
     def kw(self):
         return {"entity": self.global_opt.entity, "year": self.global_opt.year}
 
-    def parse(self, key, value):
-        if key == "expect_license_header":
-            self.expect_license_header = load_license(value)
-            return
+    def parse_section(self, section):
+        expect_license_header = section.get('expect_license_header')
 
-        if key == "java_single_star":
-            self.java_single_star = ("true" == value)
-            return
+        if expect_license_header:
+            self.expect_license_header = load_license(expect_license_header)
 
-        raise Exception('Unsupported option (' + key + ')')
+        start_comment = section.get('start_comment')
+
+        if start_comment:
+            self.start_comment = start_comment
+
+        end_comment = section.get('end_comment')
+
+        if end_comment:
+            self.end_comment = end_comment
 
     def evaluate(self):
         _, ext = os.path.splitext(self.path)
@@ -258,16 +269,12 @@ def entry():
             continue
 
         if section == 'global':
-            for (key, value) in config.items(section):
-                global_opt.parse(key, value)
-
+            global_opt.parse_section(config[section])
             continue
 
         if section.startswith('pattern:'):
             _, rest = section.split(':', 1)
-
-            pat = pathglob_compile(rest)
-            matchers.append((pat, config.items(section)))
+            matchers.append((pathglob_compile(rest), config[section]))
             continue
 
         raise Exception('Unsupported section (' + section + ')')
@@ -289,8 +296,7 @@ def entry():
                 opt = checkers[relative] = FileMatchOptions(
                     global_opt, relative, path)
 
-            for (key, value) in section:
-                opt.parse(key, value)
+            opt.parse_section(section)
 
     for relative, opt in sorted(checkers.items(), key=lambda e: e[0]):
         checks.append((opt, opt.evaluate()))

@@ -13,7 +13,7 @@ class Spotify10(Policy):
 
         config.set('global', 'entity', 'Spotify AB')
         config.set('global', 'expect_license', 'Apache 2.0')
-        config.set('global', 'auto_year', True)
+        config.set('global', 'auto_year', 'true')
 
         if not config.has_section('pattern:/**/*.py'):
             config.add_section('pattern:/**/*.py')
