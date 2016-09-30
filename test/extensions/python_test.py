@@ -5,10 +5,11 @@ from unittest.mock import Mock
 
 class PythonTest(TestCase):
     def test_find_header_range(self):
+        context = Mock()
         path = Mock()
         opt = Mock()
 
-        ext = python.Python(path, opt)
+        ext = python.Python(context, path, opt)
 
         self.assertEquals((0, 3), ext.find_header_range([
             '#',
