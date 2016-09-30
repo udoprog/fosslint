@@ -17,8 +17,12 @@ setup(
     license='GPLv3',
     packages=[
         'fosslint',
-        'fosslint.licenses'
+        'fosslint.licenses',
+        'fosslint.policies'
     ],
     scripts=['bin/fosslint'],
-    install_requires=[]
+    install_requires=[],
+    package_data={
+        'fosslint.licenses': ['fosslint/licenses/*.txt']
+    }
 )
