@@ -78,7 +78,8 @@ class GlobalOptions:
 
 
 class FileMatchOptions:
-    def __init__(self, global_opt, relative, path):
+    def __init__(self, root, global_opt, relative, path):
+        self.root = root
         self.global_opt = global_opt
         self.expect_license_header = None
         self.custom_license_header_path = None
@@ -86,6 +87,16 @@ class FileMatchOptions:
         self.path = path
         self.start_comment = None
         self.end_comment = None
+
+    def absolute_path(self, path):
+        """
+        Get the absolute path as defined by the root of the project.
+        """
+
+        if path.startswith('/'):
+            return path
+
+        return os.path.join(self.root, path)
 
     @property
     def kw(self):
@@ -102,7 +113,7 @@ class FileMatchOptions:
 
         if custom_license_header_path:
             self.custom_license_header_path = load_license_header_path(
-                custom_license_header_path)
+                self.absolute_path(custom_license_header_path))
 
         start_comment = section.get('start_comment')
 
@@ -335,7 +346,7 @@ def entry():
                 opt = checkers[relative]
             except KeyError:
                 opt = checkers[relative] = FileMatchOptions(
-                    global_opt, relative, path)
+                    ns.root, global_opt, relative, path)
 
             opt.parse_section(section)
 

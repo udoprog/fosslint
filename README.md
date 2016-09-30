@@ -91,6 +91,7 @@ Expect the license header for the given license to be applied to a file.
 
 Expect the license header in `<path>` for all matching source files to be
 applied.
+This path is relative to the project which is applying the configuration.
 
 This file can contain the following variables, which will be replaced if
 present:
