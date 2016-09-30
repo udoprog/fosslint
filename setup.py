@@ -18,7 +18,8 @@ setup(
     packages=[
         'fosslint',
         'fosslint.licenses',
-        'fosslint.policies'
+        'fosslint.policies',
+        'fosslint.extensions'
     ],
     scripts=['bin/fosslint'],
     install_requires=[],
