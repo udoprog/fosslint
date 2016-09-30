@@ -84,7 +84,7 @@ def wait_for_yes(message):
         print('Expected \'y\' or \'n\'')
 
 
-def entry():
+def main():
     parser = setup_parser()
     ns = parser.parse_args()
     home = os.path.join(os.path.expanduser('~'), DOTFILE)
@@ -164,11 +164,12 @@ def entry():
 
     if all(len(e) == 0 for p, e in checks):
         print("Performed {} check(s), no issues found :)".format(len(checks)))
-        return
+        return 0
 
     for (opt, errors) in checks:
         for e in errors:
-            print("{}:{} - {} ({})".format(e.path, e.line, e.kind, e.message))
+            print("{}:{} - {}:".format(e.path, e.line, e.kind))
+            print("  {}".format(e.message))
 
             if ns.fix:
                 if e.diff:
@@ -180,3 +181,8 @@ def entry():
                     e.fix()
                 else:
                     print("NOT fixing: {}".format(e.path))
+
+    return 1
+
+def entry():
+    sys.exit(main())
