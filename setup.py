@@ -1,6 +1,6 @@
 from distutils.core import setup
 
-VERSION = '0.0.1'
+VERSION = '0.0.2'
 
 
 setup(
@@ -23,6 +23,6 @@ setup(
     scripts=['bin/fosslint'],
     install_requires=[],
     package_data={
-        'fosslint.licenses': ['fosslint/licenses/*.txt']
+        'fosslint.licenses': ['*.txt']
     }
 )
