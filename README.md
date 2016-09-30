@@ -35,6 +35,28 @@ year = 2016
 expect_license_header = Apache 2.0
 ```
 
+## Policy Configurations (`policy:<name>`)
+
+A policy applies a set of default configurations.
+
+The following is an example use of a policy.
+
+```
+[policy:Spotify 1.0]
+# configuration
+```
+
+### Policies
+
+#### `Spotify 1.0`
+
+Follows the Spotify FOSS policy, versioned to allow for mistakes.
+
+There is no official guide for this policy.
+
+* Uses `Apache 2.0` as a license.
+* Makes sure license header is present in non-test source files.
+
 ## Pattern Configurations (`pattern:<glob>`)
 
 Pattern configurations apply to the file which matches the given glob.
