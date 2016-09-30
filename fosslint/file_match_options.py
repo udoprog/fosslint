@@ -19,6 +19,8 @@ class FileMatchOptions:
         self.end_comment = None
         self.skip_header_lines = None
         self.skip_header_on_stanza = None
+        self.strip_license = False
+        self.language = None
 
     @property
     def kw(self):
@@ -28,28 +30,32 @@ class FileMatchOptions:
         }
 
     def load_section(self, section):
-        if section.expect_license_header:
+        if section.expect_license_header is not None:
             self.expect_license_header = section.expect_license_header
 
-        if section.custom_license_header_path:
+        if section.custom_license_header_path is not None:
             self.custom_license_header_path = section.custom_license_header_path
 
-        if section.start_comment:
+        if section.start_comment is not None:
             self.start_comment = section.start_comment
 
-        if section.end_comment:
+        if section.end_comment is not None:
             self.end_comment = section.end_comment
 
-        if section.skip_header_lines:
+        if section.skip_header_lines is not None:
             self.skip_header_lines = section.skip_header_lines
 
-        if section.skip_header_on_stanza:
+        if section.skip_header_on_stanza is not None:
             self.skip_header_on_stanza = section.skip_header_on_stanza
 
-    def evaluate(self):
-        _, ext = os.path.splitext(self.path)
+        if section.strip_license is not None:
+            self.strip_license = section.strip_license
 
-        ext = load_extension(ext, self.path, self)
+        if section.language is not None:
+            self.language = section.language
+
+    def evaluate(self, context):
+        ext = load_extension(context, self.path, self)
 
         errors = []
 
@@ -74,7 +80,9 @@ class FileMatchOptions:
             for line in f:
                 lines.append(line)
 
-        rendered = ext.render_header_comment(license_header.render(**self.kw))
+        rendered = ext.render_header_comment(
+            license_header.render(**self.kw)
+        )
 
         start_index, end_index = range_index
 
@@ -119,7 +127,11 @@ class FileMatchOptions:
             license_header.render(**self.kw)
         )
 
-        original_file = list(open(path))
+        try:
+            original_file = list(open(path))
+        except:
+            raise Exception("Failed to read original file: " + path)
+
         file_lines = list(map(strip_lineend, original_file))
 
         # the last line of the header block
@@ -148,7 +160,7 @@ class FileMatchOptions:
                     fix=lambda: self.fix_expect_line_header(
                         path, ext, range_index, license_header
                     ),
-                    describe_fix=lambda: "Prepend Header",
+                    describe_fix=lambda: "Fix Header",
                     diff=self.build_diff(
                         original_file, path, ext, range_index, license_header
                     )

@@ -1,27 +1,19 @@
 from .extension import Extension
-from ..utils import strip_lineend
+from .common import HashBasedComments
 
-class Python(Extension):
-    def __init__(self, path, opt):
+class Python(HashBasedComments, Extension):
+    def __init__(self, context, path, opt):
+        super().__init__(context, path, opt)
+        self.context = context
         self.path = path
         self.opt = opt
 
-    def find_header_range(self, lines):
-        if len(lines) == 0:
-            return (0, 0)
+    @classmethod
+    def matches(cls, path, opt):
+        if opt.language == 'python':
+            return True
 
-        start = 0
+        if path.endswith('.py'):
+            return True
 
-        for i, line in enumerate(lines):
-            if i == 0 and line.startswith('#!'):
-                start = 1
-                continue
-
-            if not line.rstrip().startswith('#'):
-                return (start, i)
-
-        return (start, i + 1)
-
-    def render_header_comment(self, lines):
-        for line in lines:
-            yield u"# " + strip_lineend(line)
+        return False

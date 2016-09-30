@@ -14,79 +14,20 @@ from .pattern_section import PatternSection
 ETC="/etc/fosslint.conf"
 DOTFILE=".fosslint"
 
+def init_action(ns):
+    dotfile = os.path.join(ns.root, DOTFILE)
 
-def setup_parser():
-    parser = argparse.ArgumentParser()
+    if os.path.isfile(dotfile):
+        print('Config file already exists: ' + dotfile)
+        return 1
 
-    parser.add_argument(
-        'root',
-        nargs='?',
-        metavar="<dir>",
-        help="directory to process",
-        default=os.getcwd()
-    )
+    print('Setting up default configuration: ' + dotfile)
 
-    parser.add_argument(
-        '--fix',
-        help="Fix found problems",
-        action="store_const",
-        const=True,
-        default=False
-    )
-
-    parser.add_argument(
-        '--yes',
-        help="Automatically answer yes when asked to apply a fix",
-        action="store_const",
-        const=True,
-        default=False
-    )
-
-    parser.add_argument(
-        '-v', '--verbose',
-        dest='verbose',
-        help="Increase verbosity",
-        action="store_const",
-        const=True,
-        default=False
-    )
-
-    return parser
+    with open(dotfile, 'w') as f:
+        print('[global]', file=f)
 
 
-def iterate_files(root):
-    queue = [(root, '')]
-
-    while len(queue) > 0:
-        (path, rel) = queue.pop()
-
-        for name in os.listdir(path):
-            next_path = os.path.join(path, name)
-            next_relative = '/'.join([rel, name])
-
-            if os.path.isdir(next_path):
-                queue.append((next_path, next_relative))
-            else:
-                yield (next_path, next_relative)
-
-
-def wait_for_yes(message):
-    while True:
-        line = input(message + ' [y/n]? ')
-        line = line.strip()
-
-        if line == 'y':
-            return True
-
-        if line == 'n':
-            return False
-
-        print('Expected \'y\' or \'n\'')
-
-
-def main():
-    parser = setup_parser()
-    ns = parser.parse_args()
+def check_action(ns):
     home = os.path.join(os.path.expanduser('~'), DOTFILE)
     configs = [ETC, home, os.path.join(ns.root, DOTFILE)]
 
@@ -141,11 +82,11 @@ def main():
 
     for (path, relative) in iterate_files(ns.root):
         # is the file ignored
-        if any(ign.match(relative) for ign in ignored):
+        if any(ign(relative) for ign in ignored):
             continue
 
         for s in patterns:
-            if s.pattern.search(relative) is None:
+            if not s.pattern(relative):
                 continue
 
             try:
@@ -160,7 +101,7 @@ def main():
         if ns.verbose:
             print('Checking: ' + relative)
 
-        checks.append((opt, opt.evaluate()))
+        checks.append((opt, opt.evaluate(context)))
 
     if all(len(e) == 0 for p, e in checks):
         print("Performed {} check(s), no issues found :)".format(len(checks)))
@@ -183,6 +124,96 @@ def main():
                     print("NOT fixing: {}".format(e.path))
 
     return 1
+
+
+def setup_parser():
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument(
+        '--root',
+        metavar="<dir>",
+        help="Directory to process",
+        default=os.getcwd()
+    )
+
+    parser.add_argument(
+        '--fix',
+        help="Fix found problems",
+        action="store_const",
+        const=True,
+        default=False
+    )
+
+    parser.add_argument(
+        '--yes',
+        help="Automatically answer yes when asked to apply a fix",
+        action="store_const",
+        const=True,
+        default=False
+    )
+
+    parser.add_argument(
+        '-v', '--verbose',
+        dest='verbose',
+        help="Increase verbosity",
+        action="store_const",
+        const=True,
+        default=False
+    )
+
+    parser.set_defaults(action=check_action)
+
+    subparsers = parser.add_subparsers(
+        title='Action to take (default: check)',
+        help="Action to take"
+    )
+
+    check = subparsers.add_parser(
+        'check', help="Check for violations in a project")
+    check.set_defaults(action=check_action)
+
+    init = subparsers.add_parser(
+        'init', help="Initialize a project with a default configuration")
+    init.set_defaults(action=init_action)
+
+    return parser
+
+
+def iterate_files(root):
+    queue = [(root, '')]
+
+    while len(queue) > 0:
+        (path, rel) = queue.pop()
+
+        for name in os.listdir(path):
+            next_path = os.path.join(path, name)
+            next_relative = '/'.join([rel, name])
+
+            if os.path.isdir(next_path):
+                queue.append((next_path, next_relative))
+            else:
+                yield (next_path, next_relative)
+
+
+def wait_for_yes(message):
+    while True:
+        line = input(message + ' [y/n]? ')
+        line = line.strip()
+
+        if line == 'y':
+            return True
+
+        if line == 'n':
+            return False
+
+        print('Expected \'y\' or \'n\'')
+
+
+def main():
+    parser = setup_parser()
+    ns = parser.parse_args()
+
+    return ns.action(ns)
 
 def entry():
     sys.exit(main())

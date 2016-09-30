@@ -3,7 +3,7 @@ class Extension:
     Base class for extension helpers.
     """
 
-    def __init__(self, path, opt):
+    def __init__(self, context, path, opt):
         pass
 
     def find_header_range(self, lines):
@@ -21,4 +21,9 @@ class Extension:
         for line in lines:
             yield line
 
-
+    @classmethod
+    def matches(cls, path):
+        """
+        Check if this extension matches the given path.
+        """
+        return False

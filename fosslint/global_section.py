@@ -9,6 +9,7 @@ class GlobalSection:
         self.entity = None
         self.base_year = None
         self.auto_year = False
+        self.year_range_format = "{start} - {end}"
 
     def set_expect_license(self, name):
         self._expect_license = load_license(name)
@@ -44,6 +45,11 @@ class GlobalSection:
         if base_year:
             self.base_year = base_year
 
+        year_range_format = section.get('year_range_format')
+
+        if year_range_format:
+            self.year_range_format = year_range_format
+
     def verify(self):
         if self.entity is None:
             raise Exception('Missing option \'entity\'')
@@ -55,4 +61,6 @@ class GlobalSection:
                 raise Exception('Missing global option \'year\'')
 
         if self.base_year is not None:
-            self.year = "{} - {}".format(self.base_year, self.year)
+            self.year = self.year_range_format.format(
+                start=self.base_year, end=self.year
+            )

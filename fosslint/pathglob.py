@@ -6,22 +6,33 @@ def pathglob_compile(pattern):
 
     Convert the given pattern into a regular expression where:
 
+        `|` - divides the match into multiple sections where any may match.
         `**` - matches any directories.
         `*` - matches anything inside a single directory.
     """
 
-    parts = pattern.split('/')
-    results = []
+    sections = pattern.split('|')
+    expressions = []
 
-    for p in parts:
-        if p == '**':
-            results.append('.*')
-            continue
+    for section in sections:
+        parts = section.split('/')
+        results = []
 
-        results.append('[^/]+'.join(re.escape(s) for s in p.split('*')))
+        for p in parts:
+            if p == '**':
+                results.append('.*')
+                continue
 
-    # only require a full match if pattern is absolute
-    if pattern.startswith('/'):
-        return re.compile('^' + '/'.join(results) + '$')
+            results.append('[^/]+'.join(re.escape(s) for s in p.split('*')))
 
-    return re.compile('/'.join(results) + '$')
+        # only require a full match if pattern is absolute
+        if pattern.startswith('/'):
+            expressions.append(re.compile('^' + '/'.join(results) + '$'))
+        else:
+            expressions.append(re.compile('/'.join(results) + '$'))
+
+    def search(string):
+        result = any(r.search(string) is not None for r in expressions)
+        return result
+
+    return search

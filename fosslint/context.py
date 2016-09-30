@@ -2,6 +2,7 @@ import os
 
 from .licenses import load_license_header
 from .licenses import load_license_header_path
+from .utils import strip_lineend
 
 class Context:
     def __init__(self, root):
@@ -22,3 +23,6 @@ class Context:
 
     def load_license_header_path(self, path):
         return load_license_header_path(path)
+
+    def strip_lineend(self, line):
+        return strip_lineend(line)

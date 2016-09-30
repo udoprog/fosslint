@@ -83,6 +83,18 @@ Or if you require at least one subdirectory to be present:
 # configuration
 ```
 
+### `language = <language>`
+
+If fosslint can't determine which language a file has, or if the wrong one is
+detected, this option can override it.
+
+Available languages are:
+
+* `hash` - Generic language where comments are hash-based (`#` prefixed).
+* `c-ish` - Generic language where comments are c-style (`/*` and `*/`).
+* `python` - Python
+* `java` - Java
+
 ### `expect_license_header = <license>`
 
 Expect the license header for the given license to be applied to a file.
@@ -111,6 +123,10 @@ which would match lines 0-10, and 12.
 
 If `<string>` is found in any line of the header, do not verify license header.
 
+### `strip_header = <true|false>`
+
+If `true`, will cause trailing spaces in header to be removed.
+
 ## Ignore Configurations (`ignore:<glob>`)
 
 Any path matched in the ignore section will be ignored by fosslint.
@@ -133,6 +149,15 @@ If copyright year is a range, this is the first component of that range as in
 ### `expect_license = <license>`
 
 Expect the given license to be applied to the project.
+
+### `year_range_format = <format>`
+
+The format to apply when rendering a year range, must contain `{start}` and
+`{end}` which is replaced with the starting and ending year respectively.
+
+```
+year_range_format = {start}-{end}
+```
 
 ## Licenses
 
