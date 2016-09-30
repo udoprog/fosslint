@@ -107,6 +107,14 @@ Skip matching any lines in the expected comment header that matches
 `<linespec>` is a line number specification supporting ranges, like `0-10,12`
 which would match lines 0-10, and 12.
 
+### `skip_header_on_stanza = <string>`
+
+If `<string>` is found in any line of the header, do not verify license header.
+
+## Ignore Configurations (`ignore:<glob>`)
+
+Any path matched in the ignore section will be ignored by fosslint.
+
 ## Global Configuration Keys
 
 ### `year = <year>`

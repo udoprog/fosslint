@@ -15,13 +15,17 @@ class Spotify10(Policy):
         global_section.auto_year = True
 
         patterns.append(PatternSection.build(
-            context,
-            '/**/*.py',
+            context, '/**/*.py',
             expect_license_header = 'Apache 2.0'
         ))
 
         patterns.append(PatternSection.build(
-            context,
-            '**/src/main/**/*.java',
+            context, '*.java',
+            start_comment = '/*',
+            end_comment = '*/'
+        ))
+
+        patterns.append(PatternSection.build(
+            context, '/**/src/main/**/*.java',
             expect_license_header = 'Apache 2.0'
         ))

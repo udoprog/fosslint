@@ -20,4 +20,8 @@ def pathglob_compile(pattern):
 
         results.append('[^/]+'.join(re.escape(s) for s in p.split('*')))
 
-    return re.compile('^' + '/'.join(results) + '$')
+    # only require a full match if pattern is absolute
+    if pattern.startswith('/'):
+        return re.compile('^' + '/'.join(results) + '$')
+
+    return re.compile('/'.join(results) + '$')

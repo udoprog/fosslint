@@ -89,9 +89,13 @@ def entry():
 
         config.read(c)
 
+    # patterns to ignore
+    ignored = []
+    # patterns to evalute
     patterns = []
+    # global configuration
     global_section = GlobalSection()
-
+    # context for local configurations
     context = Context(ns.root)
 
     for section in config.sections():
@@ -105,6 +109,11 @@ def entry():
 
         if section == 'global':
             global_section.parse_section(config[section])
+            continue
+
+        if section.startswith('ignore:'):
+            _, rest = section.split(':', 1)
+            ignored.append(pathglob_compile(rest))
             continue
 
         p = PatternSection.parse(context, section, config[section])
@@ -122,8 +131,12 @@ def entry():
     checks = []
 
     for (path, relative) in iterate_files(ns.root):
+        # is the file ignored
+        if any(ign.match(relative) for ign in ignored):
+            continue
+
         for s in patterns:
-            if s.pattern.fullmatch(relative) is None:
+            if s.pattern.search(relative) is None:
                 continue
 
             try:

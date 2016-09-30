@@ -17,6 +17,7 @@ class FileMatchOptions:
         self.start_comment = None
         self.end_comment = None
         self.skip_header_lines = None
+        self.skip_header_on_stanza = None
 
     @property
     def kw(self):
@@ -40,6 +41,9 @@ class FileMatchOptions:
 
         if section.skip_header_lines:
             self.skip_header_lines = section.skip_header_lines
+
+        if section.skip_header_on_stanza:
+            self.skip_header_on_stanza = section.skip_header_on_stanza
 
     def evaluate(self):
         _, ext = os.path.splitext(self.path)
@@ -123,6 +127,12 @@ class FileMatchOptions:
         if range_index != (0, 0):
             start_index, end_index = range_index
             file_lines = file_lines[start_index:end_index]
+
+            stanza = self.skip_header_on_stanza
+
+            # skip header stanza is defined and matches a header line.
+            if stanza and any(stanza in line for line in file_lines):
+                return
 
         for i, (line, expect) in enumerate(zip(file_lines, expected_lines)):
             if self.skip_header_lines and not self.skip_header_lines(i):

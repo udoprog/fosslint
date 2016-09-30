@@ -34,6 +34,7 @@ class PatternSection:
         self.start_comment = kw.get('start_comment', None)
         self.end_comment = kw.get('end_comment', None)
         self.skip_header_lines = kw.get('skip_header_lines', None)
+        self.skip_header_on_stanza = kw.get('skip_header_on_stanza', None)
 
     @classmethod
     def build(cls, context, pattern, **kw):
@@ -70,11 +71,13 @@ class PatternSection:
         start_comment = section.get('start_comment')
         end_comment = section.get('end_comment')
         skip_header_lines = section.get('skip_header_lines')
+        skip_header_on_stanza = section.get('skip_header_on_stanza')
 
         return cls.build(context, pattern,
             expect_license_header = expect_license_header,
             custom_license_header_path = custom_license_header_path,
             start_comment = start_comment,
             end_comment = end_comment,
-            skip_header_lines = skip_header_lines
+            skip_header_lines = skip_header_lines,
+            skip_header_on_stanza = skip_header_on_stanza
         )
