@@ -72,9 +72,12 @@ class GlobalOptions:
 
 
 class FileMatchOptions:
-    def __init__(self, global_opt):
+    def __init__(self, global_opt, relative, path):
         self.global_opt = global_opt
         self.expect_license_header = None
+        self.relative = relative
+        self.path = path
+        self.java_single_star = None
 
     @property
     def kw(self):
@@ -85,17 +88,21 @@ class FileMatchOptions:
             self.expect_license_header = load_license(value)
             return
 
+        if key == "java_single_star":
+            self.java_single_star = ("true" == value)
+            return
+
         raise Exception('Unsupported option (' + key + ')')
 
-    def evaluate(self, path):
-        _, ext = os.path.splitext(path)
+    def evaluate(self):
+        _, ext = os.path.splitext(self.path)
 
-        ext = load_extension(ext, path, self)
+        ext = load_extension(ext, self.path, self)
 
         errors = []
 
         if self.expect_license_header is not None:
-            errors.append(self.check_expect_line_header(path, ext))
+            errors.append(self.check_expect_line_header(self.path, ext))
 
         return list(itertools.chain(*errors))
 
@@ -260,25 +267,33 @@ def entry():
             _, rest = section.split(':', 1)
 
             pat = pathglob_compile(rest)
-            opt = FileMatchOptions(global_opt)
-
-            for (key, value) in config.items(section):
-                opt.parse(key, value)
-
-            matchers.append((pat, opt))
+            matchers.append((pat, config.items(section)))
             continue
 
         raise Exception('Unsupported section (' + section + ')')
 
     global_opt.verify()
 
+    checkers = dict()
+
     checks = []
 
     for (path, relative) in iterate_files(ns.root):
-        for (pat, opt) in matchers:
-            if pat.fullmatch(relative) is not None:
-                checks.append((opt, opt.evaluate(path)))
-                break
+        for (pat, section) in matchers:
+            if pat.fullmatch(relative) is None:
+                continue
+
+            try:
+                opt = checkers[relative]
+            except KeyError:
+                opt = checkers[relative] = FileMatchOptions(
+                    global_opt, relative, path)
+
+            for (key, value) in section:
+                opt.parse(key, value)
+
+    for relative, opt in sorted(checkers.items(), key=lambda e: e[0]):
+        checks.append((opt, opt.evaluate()))
 
     if all(len(e) == 0 for p, e in checks):
         print("Performed {} check(s), no issues found :)".format(len(checks)))

@@ -17,28 +17,35 @@ class Java(Extension):
     def __init__(self, path, opt):
         self.path = path
         self.opt = opt
+        self.comment_start = "/*" if opt.java_single_star else "/**"
+        self.comment_end = " */" if opt.java_single_star else " **/"
 
     def find_header_end(self, lines):
         for i, line in enumerate(lines):
             if i == 0:
-                if not line.startswith('/**'):
+                if not line.startswith(self.comment_start):
                     return i
+
+            if line == self.comment_end:
+                return i + 1
 
             if line.startswith(' *'):
                 continue
 
-            if line == ' **/':
-                return i + 1
-
         return 0
 
     def render_header_comment(self, lines):
-        yield u"/**"
+        yield self.comment_start
 
         for line in lines:
-            yield u" * " + line.rstrip()
+            s = line.rstrip()
 
-        yield " **/"
+            if len(s) == 0:
+                yield u" *"
+            else:
+                yield u" * " + line.rstrip()
+
+        yield self.comment_end
 
 
 class Python(Extension):
