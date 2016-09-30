@@ -16,6 +16,7 @@ class FileMatchOptions:
         self.custom_license_header_path = None
         self.start_comment = None
         self.end_comment = None
+        self.skip_header_lines = None
 
     @property
     def kw(self):
@@ -36,6 +37,9 @@ class FileMatchOptions:
 
         if section.end_comment:
             self.end_comment = section.end_comment
+
+        if section.skip_header_lines:
+            self.skip_header_lines = section.skip_header_lines
 
     def evaluate(self):
         _, ext = os.path.splitext(self.path)
@@ -72,8 +76,11 @@ class FileMatchOptions:
         for line in lines[:start_index]:
             yield line
 
-        for header_line in rendered:
-            yield header_line + u'\n'
+        for line, header_line in enumerate(rendered):
+            if self.skip_header_lines and self.skip_header_lines(line):
+                yield lines[line]
+            else:
+                yield header_line + u'\n'
 
         for line in lines[end_index:]:
             yield line
@@ -118,6 +125,9 @@ class FileMatchOptions:
             file_lines = file_lines[start_index:end_index]
 
         for i, (line, expect) in enumerate(zip(file_lines, expected_lines)):
+            if self.skip_header_lines and not self.skip_header_lines(i):
+                continue
+
             if line != expect:
                 yield Violation(
                     path=path,

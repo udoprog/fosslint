@@ -99,6 +99,14 @@ present:
 * `{entity}` the entity which the license belongs to.
 * `{year}` the year for which the license was issued.
 
+### `skip_header_lines = <linespec>`
+
+Skip matching any lines in the expected comment header that matches
+`<linespec>`.
+
+`<linespec>` is a line number specification supporting ranges, like `0-10,12`
+which would match lines 0-10, and 12.
+
 ## Global Configuration Keys
 
 ### `year = <year>`

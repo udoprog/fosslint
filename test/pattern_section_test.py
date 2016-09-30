@@ -1,4 +1,5 @@
 from fosslint.pattern_section import PatternSection
+from fosslint.pattern_section import parse_lines
 
 import configparser
 
@@ -24,3 +25,16 @@ class PatternSectionTest(TestCase):
                           section.custom_license_header_path)
         self.assertEquals('/*', section.start_comment)
         self.assertEquals('*/', section.end_comment)
+
+    def test_parse_lines(self):
+        m1 = parse_lines('0,1,2')
+        m2 = parse_lines('0,2-10')
+
+        self.assertTrue(m1(0))
+        self.assertFalse(m1(3))
+
+        self.assertTrue(m2(0))
+        self.assertFalse(m2(1))
+        self.assertTrue(m2(2))
+        self.assertTrue(m2(10))
+        self.assertFalse(m2(11))
