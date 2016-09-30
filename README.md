@@ -19,7 +19,7 @@ which is useful if you intend to make it part of your build pipeline.
 It is also capable of suggesting a fix for many violations. To do this, run
 `fosslint --fix`.
 
-```
+```bash
 $> fosslint --fix
 /home/udoprog/repo/project/src/main.c:1 - License Header Mismatch:
   " * Copyright (c) 2016 Wrong Entity." != " * Copyright (c) 2016 Right Entity."
