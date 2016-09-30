@@ -2,19 +2,27 @@ import datetime
 
 from .licenses import load_license
 
-class GlobalOptions:
+class GlobalSection:
     def __init__(self):
-        self.expect_license = None
+        self._expect_license = None
         self.year = None
         self.entity = None
         self.base_year = None
         self.auto_year = False
 
+    def set_expect_license(self, name):
+        self._expect_license = load_license(name)
+
+    def get_expect_license(self):
+        return self._expect_license
+
+    expect_license = property(get_expect_license, set_expect_license)
+
     def parse_section(self, section):
         expect_license = section.get('expect_license')
 
         if expect_license:
-            self.expect_license = load_license(expect_license)
+            self.expect_license = expect_license
 
         entity = section.get('entity')
 

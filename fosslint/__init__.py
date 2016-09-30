@@ -6,8 +6,10 @@ import sys
 from .pathglob import pathglob_compile
 from .policies import load_policy
 
-from .global_options import GlobalOptions
+from .context import Context
+from .global_section import GlobalSection
 from .file_match_options import FileMatchOptions
+from .pattern_section import PatternSection
 
 ETC="/etc/fosslint.conf"
 DOTFILE=".fosslint"
@@ -87,59 +89,52 @@ def entry():
 
         config.read(c)
 
-    policies = []
+    patterns = []
+    global_section = GlobalSection()
 
-    # find policies
+    context = Context(ns.root)
+
     for section in config.sections():
         if section.startswith('policy:'):
             _, name = section.split(':', 1)
             options = config.options(section)
-            policies.append(load_policy(name, options))
-            continue
-
-    # apply policies
-    for policy in policies:
-        print("Applying Policy: {}".format(policy.name))
-        policy.apply(config)
-
-    matchers = []
-    global_opt = GlobalOptions()
-
-    for section in config.sections():
-        if section.startswith('policy:'):
+            policy = load_policy(name, options)
+            print('Applying Policy: ' + policy.name)
+            policy.apply(context, global_section, patterns)
             continue
 
         if section == 'global':
-            global_opt.parse_section(config[section])
+            global_section.parse_section(config[section])
             continue
 
-        if section.startswith('pattern:'):
-            _, rest = section.split(':', 1)
-            matchers.append((pathglob_compile(rest), config[section]))
+        p = PatternSection.parse(context, section, config[section])
+
+        if p:
+            patterns.append(p)
             continue
 
         raise Exception('Unsupported section (' + section + ')')
 
-    global_opt.verify()
+    global_section.verify()
 
-    checkers = dict()
+    checks_by_file = dict()
 
     checks = []
 
     for (path, relative) in iterate_files(ns.root):
-        for (pat, section) in matchers:
-            if pat.fullmatch(relative) is None:
+        for s in patterns:
+            if s.pattern.fullmatch(relative) is None:
                 continue
 
             try:
-                opt = checkers[relative]
+                opt = checks_by_file[relative]
             except KeyError:
-                opt = checkers[relative] = FileMatchOptions(
-                    ns.root, global_opt, relative, path)
+                opt = checks_by_file[relative] = FileMatchOptions(
+                    global_section, relative, path)
 
-            opt.parse_section(section)
+            opt.load_section(s)
 
-    for relative, opt in sorted(checkers.items(), key=lambda e: e[0]):
+    for relative, opt in sorted(checks_by_file.items(), key=lambda e: e[0]):
         checks.append((opt, opt.evaluate()))
 
     if all(len(e) == 0 for p, e in checks):

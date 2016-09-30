@@ -1,5 +1,7 @@
 from .policy import Policy
 
+from ..pattern_section import PatternSection
+
 
 class Spotify10(Policy):
     name = "Spotify 1.0"
@@ -7,22 +9,19 @@ class Spotify10(Policy):
     def __init__(self, options):
         pass
 
-    def apply(self, config):
-        if not config.has_section('global'):
-            config.add_section('global')
+    def apply(self, context, global_section, patterns):
+        global_section.entity = 'Spotify AB'
+        global_section.expect_license = 'Apache 2.0'
+        global_section.auto_year = True
 
-        config.set('global', 'entity', 'Spotify AB')
-        config.set('global', 'expect_license', 'Apache 2.0')
-        config.set('global', 'auto_year', 'true')
+        patterns.append(PatternSection.build(
+            context,
+            '/**/*.py',
+            expect_license_header = 'Apache 2.0'
+        ))
 
-        if not config.has_section('pattern:/**/*.py'):
-            config.add_section('pattern:/**/*.py')
-
-        config.set('pattern:/**/*.py', 'expect_license_header', 'Apache 2.0')
-
-        if not config.has_section('pattern:**/src/main/**/*.java'):
-            config.add_section('pattern:**/src/main/**/*.java')
-
-        config.set(
-            'pattern:**/src/main/**/*.java', 'expect_license_header',
-            'Apache 2.0')
+        patterns.append(PatternSection.build(
+            context,
+            '**/src/main/**/*.java',
+            expect_license_header = 'Apache 2.0'
+        ))

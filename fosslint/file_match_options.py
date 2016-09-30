@@ -8,52 +8,34 @@ from .licenses import load_license_header_path
 from .extensions import load_extension
 
 class FileMatchOptions:
-    def __init__(self, root, global_opt, relative, path):
-        self.root = root
-        self.global_opt = global_opt
-        self.expect_license_header = None
-        self.custom_license_header_path = None
+    def __init__(self, global_section, relative, path):
+        self.global_section = global_section
         self.relative = relative
         self.path = path
+        self.expect_license_header = None
+        self.custom_license_header_path = None
         self.start_comment = None
         self.end_comment = None
 
-    def absolute_path(self, path):
-        """
-        Get the absolute path as defined by the root of the project.
-        """
-
-        if path.startswith('/'):
-            return path
-
-        return os.path.join(self.root, path)
-
     @property
     def kw(self):
-        return {"entity": self.global_opt.entity, "year": self.global_opt.year}
+        return {
+            "entity": self.global_section.entity,
+            "year": self.global_section.year
+        }
 
-    def parse_section(self, section):
-        expect_license_header = section.get('expect_license_header')
+    def load_section(self, section):
+        if section.expect_license_header:
+            self.expect_license_header = section.expect_license_header
 
-        if expect_license_header:
-            self.expect_license_header = load_license_header(
-                expect_license_header)
+        if section.custom_license_header_path:
+            self.custom_license_header_path = section.custom_license_header_path
 
-        custom_license_header_path = section.get('custom_license_header_path')
+        if section.start_comment:
+            self.start_comment = section.start_comment
 
-        if custom_license_header_path:
-            self.custom_license_header_path = load_license_header_path(
-                self.absolute_path(custom_license_header_path))
-
-        start_comment = section.get('start_comment')
-
-        if start_comment:
-            self.start_comment = start_comment
-
-        end_comment = section.get('end_comment')
-
-        if end_comment:
-            self.end_comment = end_comment
+        if section.end_comment:
+            self.end_comment = section.end_comment
 
     def evaluate(self):
         _, ext = os.path.splitext(self.path)
