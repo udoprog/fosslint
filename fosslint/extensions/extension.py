@@ -6,12 +6,12 @@ class Extension:
     def __init__(self, path, opt):
         pass
 
-    def find_header_end(self, lines):
+    def find_header_range(self, lines):
         """
-        Find which line number (zero-based) that the license header ends at.
+        Find the range in lines (zero-based) that the header occupies.
         """
 
-        return 0
+        return (0, 0)
 
     def render_header_comment(self, lines):
         """

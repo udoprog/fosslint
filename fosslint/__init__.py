@@ -117,7 +117,7 @@ class FileMatchOptions:
 
         return list(itertools.chain(*errors))
 
-    def render_fixed(self, path, ext, end_index):
+    def render_fixed(self, path, ext, range_index):
         lines = []
 
         with open(path) as f:
@@ -128,22 +128,27 @@ class FileMatchOptions:
             self.expect_license_header.render_header(**self.kw)
         )
 
+        start_index, end_index = range_index
+
+        for line in lines[:start_index]:
+            yield line
+
         for header_line in rendered:
             yield header_line + u'\n'
 
         for line in lines[end_index:]:
             yield line
 
-    def fix_expect_line_header(self, path, ext, end_index):
-        fixed = list(self.render_fixed(path, ext, end_index))
+    def fix_expect_line_header(self, path, ext, range_index):
+        fixed = list(self.render_fixed(path, ext, range_index))
 
         with open(path, 'w') as f:
             for line in fixed:
                 f.write(line)
 
-    def build_diff(self, original_file, path, ext, end_index):
+    def build_diff(self, original_file, path, ext, range_index):
         def f():
-            fixed = list(self.render_fixed(path, ext, end_index))
+            fixed = list(self.render_fixed(path, ext, range_index))
 
             return difflib.unified_diff(
                 original_file, fixed,
@@ -161,7 +166,7 @@ class FileMatchOptions:
         file_lines = [l.rstrip() for l in original_file]
 
         # the last line of the header block
-        end_index = ext.find_header_end(file_lines)
+        range_index = ext.find_header_range(file_lines)
 
         for i, (line, expect) in enumerate(zip(file_lines, expected_lines)):
             if line != expect:
@@ -171,10 +176,10 @@ class FileMatchOptions:
                     message="\"{}\" != \"{}\"".format(line, expect),
                     kind="License Header Mismatch",
                     fix=lambda: self.fix_expect_line_header(
-                        path, ext, end_index
+                        path, ext, range_index
                     ),
                     describe_fix=lambda: "Prepend Header",
-                    diff=self.build_diff(original_file, path, ext, end_index)
+                    diff=self.build_diff(original_file, path, ext, range_index)
                 )
 
                 break

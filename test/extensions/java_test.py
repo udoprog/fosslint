@@ -13,13 +13,13 @@ class JavaTest(TestCase):
 
         ext = java.Java(path, opt)
 
-        self.assertEquals(3, ext.find_header_end([
+        self.assertEquals((0, 3), ext.find_header_range([
             '/**',
             ' * DO NOT CARE',
             ' **/'
         ]))
 
-    def test_find_header_end_configure(self):
+    def test_find_header_range_configured(self):
         path = Mock()
 
         opt = Mock()
@@ -28,7 +28,7 @@ class JavaTest(TestCase):
 
         ext = java.Java(path, opt)
 
-        self.assertEquals(3, ext.find_header_end([
+        self.assertEquals((0, 3), ext.find_header_range([
             '/*',
             ' * DO NOT CARE',
             ' */'
