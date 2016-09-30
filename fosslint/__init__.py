@@ -204,6 +204,14 @@ def setup_parser():
         default=False
     )
 
+    parser.add_argument(
+        '--yes',
+        help="Automatically answer yes when asked to apply a fix",
+        action="store_const",
+        const=True,
+        default=False
+    )
+
     return parser
 
 
@@ -319,7 +327,7 @@ def entry():
                     for line in e.diff():
                         sys.stdout.write(line)
 
-                if wait_for_yes(e.describe_fix()):
+                if ns.yes or wait_for_yes(e.describe_fix()):
                     print("Fixing: {}".format(e.path))
                     e.fix()
                 else:
