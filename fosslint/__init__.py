@@ -42,6 +42,15 @@ def setup_parser():
         default=False
     )
 
+    parser.add_argument(
+        '-v', '--verbose',
+        dest='verbose',
+        help="Increase verbosity",
+        action="store_const",
+        const=True,
+        default=False
+    )
+
     return parser
 
 
@@ -148,6 +157,9 @@ def entry():
             opt.load_section(s)
 
     for relative, opt in sorted(checks_by_file.items(), key=lambda e: e[0]):
+        if ns.verbose:
+            print('Checking: ' + relative)
+
         checks.append((opt, opt.evaluate()))
 
     if all(len(e) == 0 for p, e in checks):

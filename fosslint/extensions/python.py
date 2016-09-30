@@ -1,4 +1,5 @@
 from .extension import Extension
+from ..utils import strip_lineend
 
 class Python(Extension):
     def __init__(self, path, opt):
@@ -23,9 +24,4 @@ class Python(Extension):
 
     def render_header_comment(self, lines):
         for line in lines:
-            s = line.rstrip()
-
-            if len(s) == 0:
-                yield u"#"
-            else:
-                yield u"# " + s
+            yield u"# " + strip_lineend(line)

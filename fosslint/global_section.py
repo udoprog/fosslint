@@ -55,4 +55,4 @@ class GlobalSection:
                 raise Exception('Missing global option \'year\'')
 
         if self.base_year is not None:
-            self.year = "{}-{}".format(self.base_year, self.year)
+            self.year = "{} - {}".format(self.base_year, self.year)

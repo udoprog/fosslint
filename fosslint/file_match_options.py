@@ -6,6 +6,7 @@ from .violation import Violation
 from .licenses import load_license_header
 from .licenses import load_license_header_path
 from .extensions import load_extension
+from .utils import strip_lineend
 
 class FileMatchOptions:
     def __init__(self, global_section, relative, path):
@@ -119,7 +120,7 @@ class FileMatchOptions:
         )
 
         original_file = list(open(path))
-        file_lines = [l.rstrip() for l in original_file]
+        file_lines = list(map(strip_lineend, original_file))
 
         # the last line of the header block
         range_index = ext.find_header_range(file_lines)
@@ -135,7 +136,7 @@ class FileMatchOptions:
                 return
 
         for i, (line, expect) in enumerate(zip(file_lines, expected_lines)):
-            if self.skip_header_lines and not self.skip_header_lines(i):
+            if self.skip_header_lines and self.skip_header_lines(i):
                 continue
 
             if line != expect:

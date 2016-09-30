@@ -1,4 +1,5 @@
 from .extension import Extension
+from ..utils import strip_lineend
 
 class Java(Extension):
     def __init__(self, path, opt):
@@ -25,11 +26,6 @@ class Java(Extension):
         yield self.start_comment
 
         for line in lines:
-            s = line.rstrip()
-
-            if len(s) == 0:
-                yield u' *'
-            else:
-                yield u' * ' + line.rstrip()
+            yield u' * ' + strip_lineend(line)
 
         yield u' ' + self.end_comment
