@@ -7,13 +7,14 @@ class GlobalSection:
         self._expect_license = None
         self._context = context
         self.year = None
-        self.entity = None
+        self.entity = 'Entity'
         self.start_year = None
-        self.auto_year = False
+        self.auto_year = True
         self.year_range_format = "{start} - {end}"
         self.strip_license = False
         self.license_header = None
         self.license_header_path = None
+        self.license_header_pad = None
 
     def set_expect_license(self, name):
         self._expect_license = load_license(name)
@@ -70,6 +71,11 @@ class GlobalSection:
         if license_header_path:
             self.license_header_path = self._context.load_license_header_path(
                 self._context.absolute_path(license_header_path))
+
+        license_header_pad = section.get('license_header_pad')
+
+        if license_header_pad:
+            self.license_header_pad = license_header_pad
 
     def verify(self):
         if self.entity is None:

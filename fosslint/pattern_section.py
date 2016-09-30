@@ -37,6 +37,7 @@ class PatternSection:
         self.skip_header_on_stanza = kw.get('skip_header_on_stanza', None)
         self.strip_license = kw.get('strip_license', None)
         self.language = kw.get('language', None)
+        self.license_header_pad = kw.get('license_header_pad', None)
 
     @classmethod
     def build(cls, context, pattern, **kw):
@@ -75,6 +76,7 @@ class PatternSection:
         skip_header_on_stanza = section.get('skip_header_on_stanza')
         strip_license = section.getboolean('strip_license')
         language = section.get('language')
+        license_header_pad = section.get('license_header_pad')
 
         return cls.build(context, pattern,
             license_header = license_header,
@@ -84,5 +86,6 @@ class PatternSection:
             skip_header_lines = skip_header_lines,
             skip_header_on_stanza = skip_header_on_stanza,
             strip_license = strip_license,
-            language = language
+            language = language,
+            license_header_pad = license_header_pad,
         )

@@ -15,6 +15,7 @@ class FileMatchOptions:
         self.path = path
         self.license_header = global_section.license_header
         self.license_header_path = global_section.license_header_path
+        self.license_header_pad = global_section.license_header_pad
         self.start_comment = None
         self.end_comment = None
         self.skip_header_lines = None
@@ -53,6 +54,9 @@ class FileMatchOptions:
 
         if section.language is not None:
             self.language = section.language
+
+        if section.license_header_pad is not None:
+            self.license_header_pad = section.license_header_pad
 
     def evaluate(self, context):
         ext = load_extension(context, self.path, self)

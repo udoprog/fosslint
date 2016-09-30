@@ -6,7 +6,7 @@ from ..pattern_section import PatternSection
 class Spotify10(Policy):
     name = "Spotify 1.0"
 
-    def __init__(self, options):
+    def __init__(self, section):
         pass
 
     def apply(self, context, global_section, patterns):

@@ -7,6 +7,7 @@ class HashBasedComments:
 
     def __init__(self, context, path, opt):
         self.context = context
+        self.pad = opt.license_header_pad if opt.license_header_pad else u' '
         self.opt = opt
 
     def find_header_range(self, lines):
@@ -33,7 +34,7 @@ class HashBasedComments:
                 yield u'#'
                 continue
 
-            yield u'# ' + s
+            yield u'#' + self.pad + s
 
 class CBasedComments:
     """
@@ -42,8 +43,9 @@ class CBasedComments:
 
     def __init__(self, context, path, opt):
         self.context = context
-        self.start_comment = opt.start_comment if opt.start_comment else "/*"
-        self.end_comment = opt.end_comment if opt.end_comment else "*/"
+        self.start_comment = opt.start_comment if opt.start_comment else u'/*'
+        self.end_comment = opt.end_comment if opt.end_comment else u'*/'
+        self.pad = opt.license_header_pad if opt.license_header_pad else u' '
         self.opt = opt
 
     def find_header_range(self, lines):
@@ -70,6 +72,6 @@ class CBasedComments:
                 yield u' *'
                 continue
 
-            yield u' * ' + s
+            yield u' *' + self.pad + s
 
         yield u' ' + self.end_comment

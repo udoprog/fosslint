@@ -1,9 +1,9 @@
 from .extension import Extension
 from .common import CBasedComments
 
-class CIsh(CBasedComments, Extension):
+class CStyle(CBasedComments, Extension):
     """
-    C-ish languages (C, C++).
+    C-style languages (C, C++, Objective-C).
     """
 
     def __init__(self, context, path, opt):
@@ -13,7 +13,7 @@ class CIsh(CBasedComments, Extension):
 
     @classmethod
     def matches(cls, path, opt):
-        if opt.language == 'c-like':
+        if opt.language == 'c-style':
             return True
 
         if path.endswith('.h'):
@@ -26,6 +26,9 @@ class CIsh(CBasedComments, Extension):
             return True
 
         if path.endswith('.cpp'):
+            return True
+
+        if path.endswith('.m'):
             return True
 
         return False

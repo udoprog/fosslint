@@ -3,6 +3,7 @@ import argparse
 import configparser
 import sys
 
+from .config import Config
 from .pathglob import pathglob_compile
 from .policies import load_policy
 
@@ -31,13 +32,15 @@ def check_action(ns):
     home = os.path.join(os.path.expanduser('~'), DOTFILE)
     configs = [ETC, home, os.path.join(ns.root, DOTFILE)]
 
-    config = configparser.RawConfigParser()
+    config_parser = configparser.RawConfigParser()
 
     for c in configs:
         if not os.path.isfile(c):
             continue
 
-        config.read(c)
+        config_parser.read(c)
+
+    config = Config(config_parser)
 
     # patterns to ignore
     ignored = []
@@ -51,8 +54,8 @@ def check_action(ns):
     for section in config.sections():
         if section.startswith('policy:'):
             _, name = section.split(':', 1)
-            options = config.options(section)
-            policy = load_policy(name, options)
+            section = config[section]
+            policy = load_policy(name, section)
             print('Applying Policy: ' + policy.name)
             policy.apply(context, global_section, patterns)
             continue
@@ -66,10 +69,9 @@ def check_action(ns):
             ignored.append(pathglob_compile(rest))
             continue
 
-        p = PatternSection.parse(context, section, config[section])
-
-        if p:
-            patterns.append(p)
+        if section.startswith('pattern:'):
+            patterns.append(
+                PatternSection.parse(context, section, config[section]))
             continue
 
         raise Exception('Unsupported section (' + section + ')')

@@ -1,13 +1,13 @@
 from .extension import Extension
 from .java import Java
 from .python import Python
-from .c_ish import CIsh
+from .c_style import CStyle
 from .generic import Hash
 
 EXTENSIONS = []
 EXTENSIONS.append(Python)
 EXTENSIONS.append(Java)
-EXTENSIONS.append(CIsh)
+EXTENSIONS.append(CStyle)
 EXTENSIONS.append(Hash)
 
 def load_extension(context, path, opt):

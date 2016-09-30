@@ -3,7 +3,7 @@ from .spotify import Spotify10
 POLICIES = {}
 POLICIES['Spotify 1.0'] = Spotify10
 
-def load_policy(name, options):
+def load_policy(name, section):
     """
     Load and return an instance of the policy with the given name.
     """
@@ -13,4 +13,4 @@ def load_policy(name, options):
     except KeyError:
         raise Exception('Unsupported policy (' + name + ')')
 
-    return policy(options)
+    return policy(section)
