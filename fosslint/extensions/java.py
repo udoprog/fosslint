@@ -11,7 +11,7 @@ class Java(Extension):
         for i, line in enumerate(lines):
             if i == 0:
                 if not line.lstrip().startswith(self.start_comment):
-                    return i
+                    break
 
             if line.rstrip().endswith(self.end_comment):
                 return (0, i + 1)

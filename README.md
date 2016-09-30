@@ -11,7 +11,7 @@ A policy can include.
 
 ## Defining policies
 
-Policies are defined in .fosslint configuration files that live in the project.
+Policies are defined in `.fosslint` configuration files that live in the project.
 
 We also look for configuration in the following locations.
 
@@ -31,11 +31,11 @@ expect_license = Apache 2.0
 entity = Company
 year = 2016
 
-[pattern:*.py]
+[pattern:/**/*.py]
 expect_license_header = Apache 2.0
 ```
 
-## Pattern Configurations (pattern:<glob>)
+## Pattern Configurations (`pattern:<glob>`)
 
 Pattern configurations apply to the file which matches the given glob.
 
@@ -51,17 +51,30 @@ a path like `src/main`, the following pattern would have to be used:
 
 ```
 [pattern:**/src/main/**/*.java]
+# configuration
 ```
 
 Or if you require at least one subdirectory to be present:
 
 ```
 [pattern:/**/*.py]
+# configuration
 ```
 
 ### `expect_license_header = <license>`
 
 Expect the license header for the given license to be applied to a file.
+
+### `custom_license_header_path = <path>`
+
+Expect the license header in `<path>` for all matching source files to be
+applied.
+
+This file can contain the following variables, which will be replaced if
+present:
+
+* `{entity}` the entity which the license belongs to.
+* `{year}` the year for which the license was issued.
 
 ## Global Configuration Keys
 

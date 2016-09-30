@@ -6,17 +6,12 @@ class License:
         self.header = header
 
 
-class LicenseInstance:
-    def __init__(self, full, header):
-        self.full = full
-        self.header = header
+class LicenseText:
+    def __init__(self, lines):
+        self.lines = lines
 
-    def render_full(self, **kw):
-        for line in self.full:
-            yield line.format(**kw)
-
-    def render_header(self, **kw):
-        for line in self.header:
+    def render(self, **kw):
+        for line in self.lines:
             yield line.format(**kw)
 
 
@@ -32,7 +27,25 @@ def read_license(path):
     if len(content) > 0:
         content = content[:-1]
 
-    return content
+    return LicenseText(content)
+
+
+def load_license_header_path(path):
+    content = list(open(path))
+
+    if len(content) > 0:
+        content = content[:-1]
+
+    return LicenseText(content)
+
+
+def load_license_header(key):
+    try:
+        license = LICENSES[key]
+    except KeyError:
+        raise Exception('Unsupported license (' + key + ')')
+
+    return read_license(license.header)
 
 
 def load_license(key):
@@ -41,7 +54,4 @@ def load_license(key):
     except KeyError:
         raise Exception('Unsupported license (' + key + ')')
 
-    full = read_license(license.full)
-    header = read_license(license.header)
-
-    return LicenseInstance(full, header)
+    return read_license(license.full)

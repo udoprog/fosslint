@@ -10,6 +10,8 @@ import contextlib
 from .pathglob import pathglob_compile
 from .policies import load_policy
 from .licenses import load_license
+from .licenses import load_license_header
+from .licenses import load_license_header_path
 from .extensions import load_extension
 
 ETC="/etc/fosslint.conf"
@@ -75,11 +77,11 @@ class GlobalOptions:
             self.year = "{}-{}".format(self.base_year, self.year)
 
 
-
 class FileMatchOptions:
     def __init__(self, global_opt, relative, path):
         self.global_opt = global_opt
         self.expect_license_header = None
+        self.custom_license_header_path = None
         self.relative = relative
         self.path = path
         self.start_comment = None
@@ -93,7 +95,14 @@ class FileMatchOptions:
         expect_license_header = section.get('expect_license_header')
 
         if expect_license_header:
-            self.expect_license_header = load_license(expect_license_header)
+            self.expect_license_header = load_license_header(
+                expect_license_header)
+
+        custom_license_header_path = section.get('custom_license_header_path')
+
+        if custom_license_header_path:
+            self.custom_license_header_path = load_license_header_path(
+                custom_license_header_path)
 
         start_comment = section.get('start_comment')
 
@@ -112,21 +121,28 @@ class FileMatchOptions:
 
         errors = []
 
+        license_header = None
+
         if self.expect_license_header is not None:
-            errors.append(self.check_expect_line_header(self.path, ext))
+            license_header = self.expect_license_header
+
+        if self.custom_license_header_path is not None:
+            license_header = self.custom_license_header_path
+
+        if license_header is not None:
+            errors.append(self.check_expect_line_header(
+                self.path, ext, license_header))
 
         return list(itertools.chain(*errors))
 
-    def render_fixed(self, path, ext, range_index):
+    def render_fixed(self, path, ext, range_index, license_header):
         lines = []
 
         with open(path) as f:
             for line in f:
                 lines.append(line)
 
-        rendered = ext.render_header_comment(
-            self.expect_license_header.render_header(**self.kw)
-        )
+        rendered = ext.render_header_comment(license_header.render(**self.kw))
 
         start_index, end_index = range_index
 
@@ -139,16 +155,18 @@ class FileMatchOptions:
         for line in lines[end_index:]:
             yield line
 
-    def fix_expect_line_header(self, path, ext, range_index):
-        fixed = list(self.render_fixed(path, ext, range_index))
+    def fix_expect_line_header(self, path, ext, range_index, license_header):
+        fixed = list(self.render_fixed(path, ext, range_index, license_header))
 
         with open(path, 'w') as f:
             for line in fixed:
                 f.write(line)
 
-    def build_diff(self, original_file, path, ext, range_index):
+    def build_diff(self, original_file, path, ext, range_index, license_header):
         def f():
-            fixed = list(self.render_fixed(path, ext, range_index))
+            fixed = list(
+                self.render_fixed(path, ext, range_index, license_header)
+            )
 
             return difflib.unified_diff(
                 original_file, fixed,
@@ -157,9 +175,13 @@ class FileMatchOptions:
 
         return f
 
-    def check_expect_line_header(self, path, ext):
+    def check_expect_line_header(self, path, ext, license_header):
+        """
+        Check that the given license header matches.
+        """
+
         expected_lines = ext.render_header_comment(
-            self.expect_license_header.render_header(**self.kw)
+            license_header.render(**self.kw)
         )
 
         original_file = list(open(path))
@@ -167,6 +189,10 @@ class FileMatchOptions:
 
         # the last line of the header block
         range_index = ext.find_header_range(file_lines)
+
+        if range_index != (0, 0):
+            start_index, end_index = range_index
+            file_lines = file_lines[start_index:end_index]
 
         for i, (line, expect) in enumerate(zip(file_lines, expected_lines)):
             if line != expect:
@@ -176,10 +202,12 @@ class FileMatchOptions:
                     message="\"{}\" != \"{}\"".format(line, expect),
                     kind="License Header Mismatch",
                     fix=lambda: self.fix_expect_line_header(
-                        path, ext, range_index
+                        path, ext, range_index, license_header
                     ),
                     describe_fix=lambda: "Prepend Header",
-                    diff=self.build_diff(original_file, path, ext, range_index)
+                    diff=self.build_diff(
+                        original_file, path, ext, range_index, license_header
+                    )
                 )
 
                 break
