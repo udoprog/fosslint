@@ -1,0 +1,10 @@
+#!/bin/bash
+
+VERSION="0.0.10"
+out="fosslint.tar.gz"
+
+sudo apt-get install python3 python3-pip
+
+pip3 install --user fosslint==${VERSION}
+
+exec ~/.local/bin/fosslint
