@@ -11,6 +11,12 @@ A policy can include.
 
 # How to Use
 
+Install using pip:
+
+```bash
+$> pip3 install --user fosslint
+```
+
 `fosslint` can be invoked without arguments to print any violations that are
 present in the current project.
 If any violations are present, `fosslint` will exit with a non-zero exit status
