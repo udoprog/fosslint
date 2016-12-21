@@ -60,6 +60,11 @@ def check_action(ns):
             policy.apply(context, global_section, patterns)
             continue
 
+    for section in config.sections():
+        if section.startswith('policy:'):
+            # already applied
+            continue
+
         if section == 'global':
             global_section.parse_section(config[section])
             continue
