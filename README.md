@@ -153,7 +153,7 @@ given string.
 
 Typically this is one space (` `) by default, but it depends on the extension.
 
-## `skip_header_lines = <linespec>` (also global)
+## `skip_header_lines = <linespec>`
 
 Skip matching any lines in the expected comment header that matches
 `<linespec>`.
